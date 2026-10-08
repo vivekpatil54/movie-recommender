@@ -1,0 +1,82 @@
+{
+  "dataset": {
+    "users": 610,
+    "movies_rated": 9724,
+    "ratings": 100836,
+    "sparsity_pct": 98.3,
+    "liked_pct": 48.18
+  },
+  "content_model": {
+    "vocabulary_size": 5000,
+    "example_similar_to_toy_story": [
+      "Moana (2016)",
+      "Antz (1998)",
+      "Wild, The (2006)",
+      "Monsters, Inc. (2001)",
+      "Turbo (2013)"
+    ]
+  },
+  "collaborative_filtering": {
+    "svd_rmse": 0.922,
+    "svd_mae": 0.715,
+    "baseline_global_mean_rmse": 1.041,
+    "components": 50
+  },
+  "ml_classifiers": {
+    "logistic_regression": {
+      "accuracy": 0.7223,
+      "precision": 0.7147,
+      "recall": 0.7048,
+      "f1": 0.7097,
+      "roc_auc": 0.7973,
+      "confusion_matrix": [
+        [
+          7719,
+          2733
+        ],
+        [
+          2868,
+          6848
+        ]
+      ]
+    },
+    "random_forest": {
+      "accuracy": 0.7226,
+      "precision": 0.7213,
+      "recall": 0.6912,
+      "f1": 0.7059,
+      "roc_auc": 0.7952,
+      "confusion_matrix": [
+        [
+          7857,
+          2595
+        ],
+        [
+          3000,
+          6716
+        ]
+      ]
+    }
+  },
+  "ann": {
+    "accuracy": 0.7229,
+    "precision": 0.7082,
+    "recall": 0.7225,
+    "f1": 0.7153,
+    "roc_auc": 0.8006,
+    "confusion_matrix": [
+      [
+        7559,
+        2893
+      ],
+      [
+        2696,
+        7020
+      ]
+    ],
+    "epochs_trained": 27,
+    "final_train_loss": 0.5381,
+    "final_val_loss": 0.536,
+    "parameters": 15233
+  }
+}

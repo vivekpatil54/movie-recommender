@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 262 64">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FF2E4D"/><stop offset=".55" stop-color="#C026D3"/><stop offset="1" stop-color="#7C3AED"/>
+    </linearGradient>
+    <linearGradient id="t" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#FF5A6E"/><stop offset="1" stop-color="#A78BFA"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="6" width="52" height="52" rx="14" fill="url(#g)"/>
+  <g fill="#fff" opacity=".35"><rect x="8" y="9" width="5" height="4" rx="1.2"/><rect x="18" y="9" width="5" height="4" rx="1.2"/><rect x="28" y="9" width="5" height="4" rx="1.2"/><rect x="38" y="9" width="5" height="4" rx="1.2"/></g>
+  <path d="M22 24 L39 33.5 L22 43 Z" fill="#fff"/>
+  <path d="M43 15 l1.9 4.2 4.2 1.9 -4.2 1.9 -1.9 4.2 -1.9 -4.2 -4.2 -1.9 4.2 -1.9z" fill="#FFD166"/>
+  <text x="66" y="36" font-family="Poppins, Segoe UI, Arial, sans-serif" font-size="26" font-weight="800" fill="#FFFFFF">Cine<tspan fill="url(#t)">Mind</tspan></text>
+  <text x="67" y="52" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="10.5" font-weight="600" letter-spacing="2.1" fill="#9A9AB8">AI MOVIE RECOMMENDER</text>
+</svg>

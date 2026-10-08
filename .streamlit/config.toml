@@ -1,0 +1,19 @@
+# "Cinema Night" theme - deep midnight background, crimson-to-amber accents, violet for AI features.
+
+[server]
+headless = true
+
+[browser]
+gatherUsageStats = false
+
+[client]
+toolbarMode = "minimal"
+
+[theme]
+base = "dark"
+primaryColor = "#FF2E4D"
+backgroundColor = "#0A0A14"
+secondaryBackgroundColor = "#161627"
+textColor = "#ECECF4"
+font = "sans serif"
+
