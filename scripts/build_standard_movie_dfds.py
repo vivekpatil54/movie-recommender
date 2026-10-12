@@ -209,35 +209,35 @@ def draw_dfd1_process(ax, cx, cy, r, proc_id, line1, line2='', font='Segoe UI'):
                 fontsize=26.0, fontweight='bold', color='#064E3B', fontfamily=font)
 
 def build_dfd_level1():
-    fig, ax = plt.subplots(figsize=(36.0, 25.0), dpi=300)
+    fig, ax = plt.subplots(figsize=(36.0, 26.5), dpi=300)
     fig.patch.set_facecolor('#FFFFFF')
     ax.set_facecolor('#FFFFFF')
     
     ax.set_xlim(0, 36.0)
-    ax.set_ylim(0.2, 24.8)
+    ax.set_ylim(-0.2, 26.0)
     ax.axis('off')
     
     font = 'Segoe UI'
     
     # Title Block
-    title_box = FancyBboxPatch((7.5, 23.0), 21.0, 1.35,
+    title_box = FancyBboxPatch((7.5, 23.9), 21.0, 1.45,
                                boxstyle="round,pad=0.08,rounding_size=0.16",
                                facecolor='#F8FAFC', edgecolor='#CBD5E1', lw=1.6)
     ax.add_patch(title_box)
     
-    ax.text(18.0, 23.85, "DFD Level 1 – Movie Recommendation and Discovery System", 
+    ax.text(18.0, 24.75, "DFD Level 1 – Movie Recommendation and Discovery System", 
             ha='center', va='center', fontsize=26.0, fontweight='bold', 
             color='#0F172A', fontfamily=font)
     
-    ax.text(18.0, 23.35, "Decomposed Level 1 Architecture: 5 Major Processes, 1 External Entity (E1) & 5 Implemented Database Tables", 
+    ax.text(18.0, 24.25, "Decomposed Level 1 Architecture: 5 Major Processes, 1 External Entity (E1) & 5 Implemented Database Tables", 
             ha='center', va='center', fontsize=14.0, fontweight='bold', 
             color='#1E40AF', fontfamily=font)
 
     # External Entity: E1 USER (Left)
     ent_w = 3.6
-    ent_h = 21.6
+    ent_h = 22.4
     ent_x = 0.9
-    ent_y = 0.8
+    ent_y = 0.6
     
     ax.add_patch(patches.Rectangle((ent_x + 0.1, ent_y - 0.1), ent_w, ent_h,
                                    facecolor='#94A3B8', edgecolor='none', alpha=0.20))
@@ -248,20 +248,21 @@ def build_dfd_level1():
     ax.plot([ent_x + 0.25, ent_x + 0.25], [ent_y + 0.30, ent_y + ent_h - 0.30], 
             color='#93C5FD', lw=2.4, linestyle='--')
     
-    ax.text(ent_x + ent_w / 2.0, ent_y + ent_h / 2.0 + 1.20, "E1", 
+    cy_ent = ent_y + ent_h / 2.0
+    ax.text(ent_x + ent_w / 2.0, cy_ent + 1.20, "E1", 
             ha='center', va='center', fontsize=28.0, fontweight='bold', 
             color='#2563EB', fontfamily=font)
-    ax.text(ent_x + ent_w / 2.0, ent_y + ent_h / 2.0 - 0.50, "USER", 
+    ax.text(ent_x + ent_w / 2.0, cy_ent - 0.50, "USER", 
             ha='center', va='center', fontsize=34.0, fontweight='bold', 
             color='#1E3A8A', fontfamily=font)
-    ax.text(ent_x + ent_w / 2.0, ent_y + ent_h / 2.0 - 1.80, "(Movie Explorer)", 
+    ax.text(ent_x + ent_w / 2.0, cy_ent - 1.80, "(Movie Explorer)", 
             ha='center', va='center', fontsize=18.0, fontweight='bold', 
             color='#475569', fontfamily=font)
 
-    # 5 Processes (Middle Column: cx = 13.5, r = 2.0)
+    # 5 Processes (Middle Column: cx = 13.5, r = 1.95)
     p_cx = 13.5
     p_r = 1.95
-    p_y = [20.2, 15.6, 11.0, 6.4, 1.8]
+    p_y = [21.0, 16.4, 11.8, 7.2, 2.6]
     
     draw_dfd1_process(ax, p_cx, p_y[0], p_r, "1.0", "User Auth &", "Profile Management")
     draw_dfd1_process(ax, p_cx, p_y[1], p_r, "2.0", "Movie Search &", "Catalog Filtering")
@@ -333,8 +334,8 @@ def build_dfd_level1():
     plt.tight_layout()
     p1 = 'reports/figures/dfd_level_1.png'
     p2 = os.path.join(DESKTOP_DIR, 'DFD_Level_1_Movie_Recommendation_System.png')
-    fig.savefig(p1, bbox_inches='tight', dpi=300)
-    fig.savefig(p2, bbox_inches='tight', dpi=300)
+    fig.savefig(p1, bbox_inches='tight', pad_inches=0.35, dpi=300)
+    fig.savefig(p2, bbox_inches='tight', pad_inches=0.35, dpi=300)
     plt.close()
     print("Flawlessly generated DFD Level 1 to", p1, "and", p2)
 
