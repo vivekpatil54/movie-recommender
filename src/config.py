@@ -39,7 +39,18 @@ API_PORT = int(os.getenv("API_PORT", "5000"))
 API_URL = os.getenv("API_URL", f"http://{API_HOST}:{API_PORT}")
 
 # LLM Configuration (Gemini / Ollama)
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY", "")
+def _get_gemini_key():
+    k = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY", "")
+    if not k:
+        try:
+            import streamlit as st
+            if hasattr(st, "secrets"):
+                k = st.secrets.get("GEMINI_API_KEY", "") or st.secrets.get("GOOGLE_API_KEY", "")
+        except Exception:
+            pass
+    return str(k).strip() if k else ""
+
+GEMINI_API_KEY = _get_gemini_key()
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.2")
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434")

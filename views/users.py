@@ -36,7 +36,7 @@ with tab_add:
         full_name = c2.text_input("Full name")
         email = st.text_input("Email")
         c3, c4, c5 = st.columns(3)
-        age = c3.number_input("Age", 5, 100, 20)
+        age = c3.number_input("Age", min_value=None, max_value=120, value=20, step=1)
         gender = c4.selectbox("Gender", GENDERS)
         new_role = c5.selectbox("Role", ["user", "admin"])
         c6, c7 = st.columns(2)
@@ -70,19 +70,37 @@ with tab_edit:
             full_name = st.text_input("Full name", u["full_name"] or "")
             email = st.text_input("Email", u["email"] or "")
             c1, c2, c3 = st.columns(3)
-            age = c1.number_input("Age", 5, 100, int(u["age"] or 20))
+            age = c1.number_input("Age", min_value=None, max_value=120, value=max(18, int(u["age"] or 20)), step=1)
             gender = c2.selectbox("Gender", GENDERS, index=GENDERS.index(u["gender"]) if u["gender"] in GENDERS else 0)
             new_role = c3.selectbox("Role", ["user", "admin"], index=0 if u["role"] == "user" else 1,
                                     disabled=is_self, help="You can't change your own role")
             if st.form_submit_button("Save changes", type="primary", icon=":material/save:"):
-                try:
-                    db.update_user(uid, username, full_name, email, int(age), gender)
-                    if not is_self:
-                        db.set_user_role(uid, new_role)
-                    clear_caches()
-                    st.success("User updated.")
-                except sqlite3.IntegrityError:
-                    st.error("That username is already taken.")
+                uname = username.strip()
+                fname = full_name.strip()
+                em = email.strip()
+                if not auth.USERNAME_RE.match(uname):
+                    st.error("Username must be 3-30 characters: letters, digits, _ or . only.")
+                elif uname.isdigit():
+                    st.error("Username cannot consist only of numbers.")
+                elif not any(c.isalpha() for c in uname):
+                    st.error("Username must contain at least one letter.")
+                elif age is None or int(age) < 18:
+                    st.error("Age must be at least 18.")
+                else:
+                    try:
+                        if fname:
+                            auth.validate_full_name(fname)
+                        if em:
+                            auth.validate_email(em)
+                        db.update_user(uid, uname, fname, em, int(age), gender)
+                        if not is_self:
+                            db.set_user_role(uid, new_role)
+                        clear_caches()
+                        st.success("User updated.")
+                    except auth.AuthError as e:
+                        st.error(str(e))
+                    except sqlite3.IntegrityError:
+                        st.error("That username is already taken.")
 
         c_reset, c_delete = st.columns(2)
         with c_reset:

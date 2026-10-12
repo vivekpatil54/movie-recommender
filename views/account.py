@@ -27,18 +27,31 @@ with tab_profile:
         full_name = st.text_input("Full name", u["full_name"] or "")
         email = st.text_input("Email", u["email"] or "")
         c1, c2 = st.columns(2)
-        age = c1.number_input("Age", 5, 100, int(u["age"] or 20))
+        age = c1.number_input("Age", min_value=None, max_value=120, value=max(18, int(u["age"] or 20)), step=1)
         gender = c2.selectbox("Gender", GENDERS, index=GENDERS.index(u["gender"]) if u["gender"] in GENDERS else 0)
         if st.form_submit_button("Save profile", type="primary", icon=":material/save:"):
-            if not auth.USERNAME_RE.match(username.strip()):
+            uname = username.strip()
+            fname = full_name.strip()
+            em = email.strip()
+            if not auth.USERNAME_RE.match(uname):
                 st.error("Username must be 3-30 characters: letters, digits, _ or . only.")
-            elif email and not auth.EMAIL_RE.match(email.strip()):
-                st.error("Please enter a valid email address.")
+            elif uname.isdigit():
+                st.error("Username cannot consist only of numbers.")
+            elif not any(c.isalpha() for c in uname):
+                st.error("Username must contain at least one letter.")
+            elif age is None or int(age) < 18:
+                st.error("Age must be at least 18.")
             else:
                 try:
-                    db.update_user(me["user_id"], username, full_name, email.strip(), int(age), gender)
+                    if fname:
+                        auth.validate_full_name(fname)
+                    if em:
+                        auth.validate_email(em)
+                    db.update_user(me["user_id"], uname, fname, em, int(age), gender)
                     set_logged_in({**me, **db.get_user(me["user_id"])})
                     st.success("Profile updated.")
+                except auth.AuthError as e:
+                    st.error(str(e))
                 except sqlite3.IntegrityError:
                     st.error("That username is already taken.")
 

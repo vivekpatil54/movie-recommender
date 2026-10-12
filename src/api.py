@@ -245,6 +245,12 @@ def users_update(user_id):
     if not current:
         raise KeyError(f"User {user_id} not found")
     b = {**current, **body()}
+    if b.get("full_name"):
+        auth.validate_full_name(b["full_name"])
+    if b.get("email"):
+        auth.validate_email(b["email"])
+    if b.get("age") is not None:
+        b["age"] = auth.validate_age(b["age"])
     db.update_user(user_id, b["username"], b["full_name"], b["email"], b["age"], b["gender"])
     return jsonify(db.get_user(user_id))
 

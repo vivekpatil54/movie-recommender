@@ -1,6 +1,6 @@
 import streamlit as st
 
-from src import client, db, llm, theme
+from src import db, theme
 from src.ui import auth_user, movie_cards, require_engine
 
 me = auth_user()
@@ -39,41 +39,7 @@ theme.stat_cards([
     ("🎯", "Predictions", f"{c['predictions']:,}", "#F472B6"),
 ])
 
-theme.section("How CineMind works", "⚙️")
-theme._html("""
-<div class="features">
-  <div class="feature" style="--g:linear-gradient(135deg,#FF2E4D,#FF8A00)">
-    <div class="feature-head"><div class="feature-icon">🧮</div><div><div class="feature-code">AI-503</div>
-    <div class="feature-title">Machine Learning</div></div></div>
-    <ul><li>TF-IDF content-based model</li><li>SVD collaborative filtering</li>
-    <li>Random Forest &amp; Logistic Regression</li><li>Flask REST API + SQLite CRUD</li></ul>
-  </div>
-  <div class="feature" style="--g:linear-gradient(135deg,#8B5CF6,#22D3EE);animation-delay:.1s">
-    <div class="feature-head"><div class="feature-icon">🧠</div><div><div class="feature-code">AI-505</div>
-    <div class="feature-title">Deep Learning</div></div></div>
-    <ul><li>Keras ANN · 128-64-32 neurons</li><li>Predicts Like / Dislike probability</li>
-    <li>Re-ranks every recommendation</li><li>Loss, accuracy &amp; ROC evaluation</li></ul>
-  </div>
-  <div class="feature" style="--g:linear-gradient(135deg,#C026D3,#F472B6);animation-delay:.2s">
-    <div class="feature-head"><div class="feature-icon">🤖</div><div><div class="feature-code">AI-504</div>
-    <div class="feature-title">LLM &amp; AI Agent</div></div></div>
-    <ul><li>Open-source LLM via Ollama</li><li>LangChain tool-calling agent</li>
-    <li>Prompt-engineered explanations</li><li>AI-written Taste Report (PDF)</li></ul>
-  </div>
-</div>
-""")
 
-s = llm.ollama_status()
-api = client.api_available()
-provider_title = "Gemini" if s.get("provider") == "gemini" else "Ollama"
-theme._html(
-    '<div style="margin:-6px 0 4px">'
-    + theme.pill("ok" if api else "warn", "Flask API", "running" if api else "local mode")
-    + theme.pill("ok" if s["model_available"] else "off", f"{provider_title} · {s['model']}", "ready" if s["model_available"] else "offline")
-    + "</div>"
-)
-if not s["model_available"]:
-    st.caption(f":material/info: {llm.setup_hint()}")
 
 theme.section("Most loved movies", "🔥")
 engine = require_engine()

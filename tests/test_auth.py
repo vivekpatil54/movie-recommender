@@ -63,6 +63,81 @@ def test_register_invalid_email(empty_db):
         auth.register("rahul", "Secret123", "Secret123", Q, "ans", email="not-an-email")
 
 
+@pytest.mark.parametrize("bad_email", [
+    "gsdshdgh@hdsh.com",
+    "satish@hdsh.com",
+    "gsdshdgh@gmail.com",
+    "bad@domain..com",
+    "user@.com",
+    "user@com",
+    "user@invaliddomain.fakeext",
+])
+def test_register_gibberish_or_invalid_emails(empty_db, bad_email):
+    with pytest.raises(auth.AuthError, match=r"(?i)email"):
+        auth.register("rahul", "Secret123", "Secret123", Q, "ans", email=bad_email)
+
+
+@pytest.mark.parametrize("valid_email", [
+    "satish.solanki@gmail.com",
+    "satish123@yahoo.com",
+    "user@outlook.com",
+    "rahul@example.com",
+    "priya.shah@rediffmail.com",
+    "student@university.edu",
+    "admin@company.org",
+])
+def test_register_valid_real_world_emails(empty_db, valid_email):
+    u = auth.register("test_email_user", "Secret123", "Secret123", Q, "ans", email=valid_email)
+    assert u["email"] == valid_email
+
+
+@pytest.mark.parametrize("valid_name", [
+    "Satish Solanki",
+    "Satish nandu solanki",
+    "satish solanki",
+    "SATISH SOLANKI",
+    "Rahul",
+    "Mary-Jane",
+    "John O'Connor",
+])
+def test_register_valid_human_names(empty_db, valid_name):
+    u = auth.register("name_user", "Secret123", "Secret123", Q, "ans", full_name=valid_name)
+    assert u["full_name"] == valid_name
+
+
+@pytest.mark.parametrize("bad_name", [
+    "123456",
+    "Satish123",
+    "jhjdbvbbsdbdhdbvd",
+    "bcdhsbhcd hbchbhb",
+    "hbhgvgv hdscbgbg jhjdnhdb",
+    "SatIsh SoLAnki",
+    "satIsh",
+    "SoLAnki",
+    "asdfghjkl",
+    "aaa",
+])
+def test_register_invalid_or_gibberish_names(empty_db, bad_name):
+    with pytest.raises(auth.AuthError, match=r"(Name|valid name|invalid|capitalization|consonants)"):
+        auth.register("rahul", "Secret123", "Secret123", Q, "ans", full_name=bad_name)
+
+
+@pytest.mark.parametrize("bad_age", [0, 5, 12, 17, -1, 150])
+def test_register_invalid_age(empty_db, bad_age):
+    with pytest.raises(auth.AuthError, match=r"(18|age)"):
+        auth.register("rahul", "Secret123", "Secret123", Q, "ans", age=bad_age)
+
+
+def test_register_valid_age(empty_db):
+    u = auth.register("adult_user", "Secret123", "Secret123", Q, "ans", age=18)
+    assert u["age"] == 18
+
+
+def test_register_numeric_username_rejected(empty_db):
+    with pytest.raises(auth.AuthError, match="Username"):
+        auth.register("123456", "Secret123", "Secret123", Q, "ans")
+
+
 def test_register_duplicate_username_case_insensitive(empty_db):
     make_user()
     with pytest.raises(auth.AuthError, match="already registered"):

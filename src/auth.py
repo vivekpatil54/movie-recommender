@@ -34,9 +34,178 @@ SECURITY_QUESTIONS = [
 USERNAME_RE = re.compile(r"^[A-Za-z0-9_.]{3,30}$")
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
+VOWELS = set("aeiouyAEIOUY")
+COMMON_2LETTER_ACCEPTED = {"dr", "mr", "ms", "ng", "al", "ed", "om", "li", "lu", "yu", "jo", "bo", "ty", "oz"}
+KEYBOARD_PATTERNS = ["asdf", "qwer", "zxcv", "hjkl", "yuio", "sdfg", "dfgh", "fghj", "ghjk"]
+
+
+POPULAR_EMAIL_DOMAINS = {
+    "gmail.com", "yahoo.com", "outlook.com", "hotmail.com", "icloud.com",
+    "live.com", "msn.com", "me.com", "mac.com", "proton.me", "protonmail.com",
+    "zoho.com", "aol.com", "mail.com", "yandex.com", "gmx.com", "rediffmail.com",
+    "yahoo.co.in", "yahoo.in", "zoho.in", "outlook.in", "rediff.com", "example.com"
+}
+
+COMMON_TLDS = {
+    "com", "org", "net", "edu", "gov", "mil", "int", "info", "biz", "name", "pro",
+    "io", "ai", "co", "me", "app", "dev", "tech", "online", "site", "store", "cloud",
+    "xyz", "live", "space", "tv", "fm", "cc", "ws", "mobi", "asia", "in", "us", "uk",
+    "ca", "au", "de", "fr", "jp", "cn", "ru", "br", "za", "ch", "se", "nl", "eu",
+    "es", "it", "sg", "nz", "ae", "sa", "pk", "bd", "lk", "np", "my", "id", "th",
+    "vn", "ph", "kr", "mx", "ar", "cl", "ie", "no", "fi", "dk", "pl", "cz", "at",
+    "be", "gr", "pt", "tr", "il", "ua", "ro", "hu"
+}
+
 
 class AuthError(Exception):
     """Raised with a user-friendly message when an auth action fails."""
+
+
+def validate_full_name(name: str):
+    """Validate a person's real-world full name.
+    
+    Rules:
+    - Must be between 2 and 60 characters.
+    - Letters, spaces, hyphens, and apostrophes only. No numbers.
+    - Each word must follow standard capitalization:
+        * Title Case ('Satish', 'Solanki')
+        * all lowercase ('satish', 'nandu')
+        * all uppercase ('SATISH', 'SOLANKI')
+      Mixed internal casing like 'SatIsh' or 'SoLAnki' is rejected.
+    - Words must be realistic (not keyboard spam like 'jhjdbvbbsdbdhdbvd', 'bcdhsbhcd', etc.):
+        * Must contain at least one vowel per word (for words >= 3 chars, or accepted 2-char words)
+        * No 5+ consecutive consonants
+        * No 4+ consecutive vowels
+        * No 3+ consecutive identical characters (e.g. 'aaa', 'bbb')
+        * Realistic vowel-to-length ratio for longer words
+    """
+    if not name or not name.strip():
+        raise AuthError("Please enter your full name.")
+    clean_name = name.strip()
+
+    if re.search(r"\d", clean_name):
+        raise AuthError("Name cannot contain numbers. Names must contain only alphabetic letters and spaces.")
+
+    if not re.match(r"^[A-Za-z]+(?:[ '-][A-Za-z]+)*$", clean_name):
+        raise AuthError("Name can only contain alphabetic letters, spaces, hyphens, and apostrophes.")
+
+    if len(clean_name) < 2 or len(clean_name) > 60:
+        raise AuthError("Name must be between 2 and 60 characters.")
+
+    words = [w for w in re.split(r"[ '-]+", clean_name) if w]
+    if not words:
+        raise AuthError("Please enter a valid human name.")
+
+    # Casing check per word
+    for word in words:
+        if not (word.istitle() or word.islower() or word.isupper()):
+            raise AuthError(
+                f"Name contains invalid capitalization in '{word}'. "
+                "Use standard Title Case (e.g. 'Satish Solanki'), all lowercase, or all uppercase."
+            )
+
+    # Phonetic realism / anti-gibberish checks per word
+    for word in words:
+        w_lower = word.lower()
+        v_count = sum(1 for ch in w_lower if ch in VOWELS)
+
+        if len(w_lower) >= 3 and v_count == 0:
+            raise AuthError(f"'{word}' is not a valid name. Names must contain vowels.")
+        elif len(w_lower) == 2 and v_count == 0 and w_lower not in COMMON_2LETTER_ACCEPTED:
+            raise AuthError(f"'{word}' is not a valid name or prefix.")
+
+        if re.search(r"([A-Za-z])\1\1", word):
+            raise AuthError(f"'{word}' contains repeated characters and is not a valid name.")
+
+        if re.search(r"[bcdfghjklmnpqrstvwxz]{5,}", w_lower):
+            raise AuthError(f"'{word}' appears to be random or invalid text. Please enter a real name.")
+
+        if re.search(r"[aeiouy]{4,}", w_lower):
+            raise AuthError(f"'{word}' appears to be invalid. Please enter a real name.")
+
+        for pat in KEYBOARD_PATTERNS:
+            if pat in w_lower:
+                raise AuthError(f"'{word}' appears to be keyboard pattern text. Please enter a real name.")
+
+        if len(w_lower) >= 5 and (v_count / len(w_lower)) < 0.18:
+            raise AuthError(f"'{word}' contains too many consonants. Please enter a real name.")
+
+
+def validate_email(email: str):
+    """Validate that email adheres to real-world formats and is not keyboard spam."""
+    if not email:
+        raise AuthError("Please enter a valid email address.")
+    clean_email = email.strip()
+    if len(clean_email) < 6 or len(clean_email) > 100:
+        raise AuthError("Please enter a valid email address between 6 and 100 characters.")
+    if "@" not in clean_email or clean_email.count("@") != 1:
+        raise AuthError("Please enter a valid email address containing a single '@'.")
+
+    local_part, domain = clean_email.split("@")
+
+    if not local_part or not domain:
+        raise AuthError("Please enter a complete email address (e.g. name@gmail.com).")
+
+    if not re.match(r"^[A-Za-z0-9](?:[A-Za-z0-9._%+-]*[A-Za-z0-9])?$", local_part):
+        raise AuthError("The email username format is invalid.")
+
+    if ".." in local_part or ".." in domain:
+        raise AuthError("Email address cannot contain consecutive dots ('..').")
+
+    # Check local part gibberish (e.g. gsdshdgh)
+    alpha_local = "".join(c for c in local_part if c.isalpha())
+    if len(alpha_local) >= 4:
+        v_count = sum(1 for c in alpha_local if c in VOWELS)
+        if v_count == 0:
+            raise AuthError("The email username appears to be invalid or random letters.")
+        if re.search(r"[bcdfghjklmnpqrstvwxz]{5,}", alpha_local.lower()):
+            raise AuthError("The email username contains unrealistic consonant sequences.")
+
+    domain_lower = domain.lower()
+    if domain_lower in POPULAR_EMAIL_DOMAINS:
+        return
+
+    domain_parts = domain_lower.split(".")
+    if len(domain_parts) < 2:
+        raise AuthError("Please enter a valid email domain (e.g. @gmail.com or @company.com).")
+
+    tld = domain_parts[-1]
+    second_tld = domain_parts[-2] if len(domain_parts) >= 3 else ""
+    compound_tld = f"{second_tld}.{tld}" if second_tld in {"co", "ac", "edu", "gov", "org", "net", "res"} else tld
+
+    if tld not in COMMON_TLDS and compound_tld not in COMMON_TLDS:
+        raise AuthError(f"The email domain extension '.{tld}' is not recognized. Please use a valid real-world email.")
+
+    main_domain = domain_parts[-2] if compound_tld == tld else (domain_parts[-3] if len(domain_parts) >= 3 else domain_parts[0])
+    if len(main_domain) < 2:
+        raise AuthError("The email domain name is too short.")
+
+    if not re.match(r"^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$", main_domain):
+        raise AuthError("The email domain contains invalid characters.")
+
+    # Check domain name gibberish (e.g. hdsh)
+    alpha_domain = "".join(c for c in main_domain if c.isalpha())
+    if len(alpha_domain) >= 3:
+        v_dom = sum(1 for c in alpha_domain if c in VOWELS)
+        if v_dom == 0:
+            raise AuthError(f"The email domain '{main_domain}.{tld}' appears to be invalid or gibberish.")
+        if re.search(r"[bcdfghjklmnpqrstvwxz]{5,}", alpha_domain):
+            raise AuthError(f"The email domain '{main_domain}.{tld}' contains invalid consonant sequences.")
+
+
+def validate_age(age) -> int:
+    """Validate age requirement: must be 18 or older."""
+    if age is None or age == "":
+        return None
+    try:
+        age_int = int(age)
+    except (ValueError, TypeError):
+        raise AuthError("Please enter a valid numerical age.")
+    if age_int < 18:
+        raise AuthError("You must be at least 18 years old to register.")
+    if age_int > 120:
+        raise AuthError("Please enter a valid age between 18 and 120.")
+    return age_int
 
 
 # ------------------------------------------------------------------ hashing
@@ -97,11 +266,27 @@ def _public(row: dict) -> dict:
 # ------------------------------------------------------------------ sign up
 def register(username: str, password: str, confirm: str, security_question: str, security_answer: str,
              full_name: str = "", email: str = "", age=None, gender: str = "", role: str = "user") -> dict:
-    username, email = username.strip(), email.strip()
+    username = (username or "").strip()
+    full_name = (full_name or "").strip()
+    email = (email or "").strip()
+
     if not USERNAME_RE.match(username):
         raise AuthError("Username must be 3-30 characters: letters, digits, _ or . only.")
-    if email and not EMAIL_RE.match(email):
-        raise AuthError("Please enter a valid email address.")
+    if username.isdigit():
+        raise AuthError("Username cannot consist only of numbers.")
+    if not re.search(r"[A-Za-z]", username):
+        raise AuthError("Username must contain at least one letter.")
+
+    if not full_name:
+        raise AuthError("Please enter your full name.")
+    validate_full_name(full_name)
+
+    if not email:
+        raise AuthError("Please enter your email address.")
+    validate_email(email)
+
+    validated_age = validate_age(age)
+
     _check_password(password, confirm)
     if security_question not in SECURITY_QUESTIONS:
         raise AuthError("Please choose a security question.")
@@ -114,7 +299,7 @@ def register(username: str, password: str, confirm: str, security_question: str,
             """INSERT INTO users (username, full_name, email, age, gender, created_at, password_hash,
                                   security_question, security_answer_hash, role)
                VALUES (?,?,?,?,?,?,?,?,?,?)""",
-            (username, full_name.strip(), email, age, gender, db.now(), hash_secret(password),
+            (username, full_name, email, validated_age, gender, db.now(), hash_secret(password),
              security_question, hash_secret(_normalise_answer(security_answer)), role),
         )
     except sqlite3.IntegrityError:
