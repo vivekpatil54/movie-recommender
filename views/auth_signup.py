@@ -12,8 +12,8 @@ with mid:
     with st.form("signup"):
         c1, c2 = st.columns(2)
         username = c1.text_input("Username *", placeholder="rahul_patil", help="3-30 characters: letters, digits, _ or .")
-        full_name = c2.text_input("Full name *", placeholder="Rahul Patil", help="Enter real name (e.g. Satish Solanki)")
-        email = st.text_input("Email *", placeholder="you@example.com", help="Real-world email (e.g. you@gmail.com)")
+        full_name = c2.text_input("Full name", placeholder="Rahul Patil", help="Enter real name (e.g. Satish Solanki)")
+        email = st.text_input("Email", placeholder="you@example.com", help="Real-world email (e.g. you@gmail.com)")
         c3, c4 = st.columns(2)
         age = c3.number_input("Age", min_value=None, max_value=120, value=20, step=1, help="Must be 18 or older to register")
         gender = c4.selectbox("Gender", GENDERS, format_func=lambda g: g or "Prefer not to say")
@@ -29,10 +29,6 @@ with mid:
     if submitted:
         if not agree:
             st.error("Please tick the confirmation box.", icon=":material/error:")
-        elif not (full_name or "").strip():
-            st.error("Please enter your full name.", icon=":material/error:")
-        elif not (email or "").strip():
-            st.error("Please enter your email address.", icon=":material/error:")
         elif age is None or int(age) < 18:
             st.error("You must be at least 18 years old to register.", icon=":material/error:")
         else:

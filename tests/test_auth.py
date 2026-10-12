@@ -138,6 +138,31 @@ def test_register_numeric_username_rejected(empty_db):
         auth.register("123456", "Secret123", "Secret123", Q, "ans")
 
 
+@pytest.mark.parametrize("mixed_username", [
+    "PaTIL_VIvek",
+    "Patil_Vivek",
+    "patil_VIvek",
+    "pAtIl",
+    "vivekPatil",
+    "Vivek_patil",
+])
+def test_register_mixed_casing_username_rejected(empty_db, mixed_username):
+    with pytest.raises(auth.AuthError, match=r"Username cannot mix uppercase and lowercase"):
+        auth.register(mixed_username, "Secret123", "Secret123", Q, "ans")
+
+
+@pytest.mark.parametrize("valid_uname", [
+    "patil_vivek",
+    "vivek_patil54",
+    "satish.solanki",
+    "user_100",
+    "RAHUL_PATIL",
+])
+def test_register_valid_username_casing(empty_db, valid_uname):
+    u = auth.register(valid_uname, "Secret123", "Secret123", Q, "ans")
+    assert u["username"] == valid_uname
+
+
 def test_register_duplicate_username_case_insensitive(empty_db):
     make_user()
     with pytest.raises(auth.AuthError, match="already registered"):

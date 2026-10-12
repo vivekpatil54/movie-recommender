@@ -61,6 +61,39 @@ class AuthError(Exception):
     """Raised with a user-friendly message when an auth action fails."""
 
 
+def validate_username(username: str):
+    """Validate username syntax, casing consistency, and prevent gibberish."""
+    if not username:
+        raise AuthError("Please enter a username.")
+    u = username.strip()
+    if not USERNAME_RE.match(u):
+        raise AuthError("Username must be 3-30 characters: letters, digits, _ or . only.")
+    if u.isdigit():
+        raise AuthError("Username cannot consist only of numbers.")
+    if not any(c.isalpha() for c in u):
+        raise AuthError("Username must contain at least one letter.")
+
+    has_upper = any(c.isupper() for c in u)
+    has_lower = any(c.islower() for c in u)
+    if has_upper and has_lower:
+        raise AuthError(
+            "Username cannot mix uppercase and lowercase letters (e.g. 'PaTIL_VIvek'). "
+            "Please use all lowercase letters (e.g. 'patil_vivek')."
+        )
+
+    alpha_words = re.findall(r"[A-Za-z]+", u)
+    for word in alpha_words:
+        w_lower = word.lower()
+        if len(w_lower) >= 4:
+            v_count = sum(1 for ch in w_lower if ch in VOWELS)
+            if v_count == 0:
+                raise AuthError(f"Username segment '{word}' appears to be invalid or random text.")
+            if re.search(r"[bcdfghjklmnpqrstvwxz]{5,}", w_lower):
+                raise AuthError(f"Username segment '{word}' contains unrealistic consonant sequences.")
+        if re.search(r"([A-Za-z])\1\1", word):
+            raise AuthError(f"Username segment '{word}' contains repeated characters.")
+
+
 def validate_full_name(name: str):
     """Validate a person's real-world full name.
     
@@ -270,20 +303,13 @@ def register(username: str, password: str, confirm: str, security_question: str,
     full_name = (full_name or "").strip()
     email = (email or "").strip()
 
-    if not USERNAME_RE.match(username):
-        raise AuthError("Username must be 3-30 characters: letters, digits, _ or . only.")
-    if username.isdigit():
-        raise AuthError("Username cannot consist only of numbers.")
-    if not re.search(r"[A-Za-z]", username):
-        raise AuthError("Username must contain at least one letter.")
+    validate_username(username)
 
-    if not full_name:
-        raise AuthError("Please enter your full name.")
-    validate_full_name(full_name)
+    if full_name:
+        validate_full_name(full_name)
 
-    if not email:
-        raise AuthError("Please enter your email address.")
-    validate_email(email)
+    if email:
+        validate_email(email)
 
     validated_age = validate_age(age)
 

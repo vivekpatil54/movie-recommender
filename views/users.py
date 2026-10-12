@@ -78,16 +78,11 @@ with tab_edit:
                 uname = username.strip()
                 fname = full_name.strip()
                 em = email.strip()
-                if not auth.USERNAME_RE.match(uname):
-                    st.error("Username must be 3-30 characters: letters, digits, _ or . only.")
-                elif uname.isdigit():
-                    st.error("Username cannot consist only of numbers.")
-                elif not any(c.isalpha() for c in uname):
-                    st.error("Username must contain at least one letter.")
-                elif age is None or int(age) < 18:
+                if age is None or int(age) < 18:
                     st.error("Age must be at least 18.")
                 else:
                     try:
+                        auth.validate_username(uname)
                         if fname:
                             auth.validate_full_name(fname)
                         if em:

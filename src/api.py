@@ -245,6 +245,8 @@ def users_update(user_id):
     if not current:
         raise KeyError(f"User {user_id} not found")
     b = {**current, **body()}
+    if b.get("username"):
+        auth.validate_username(b["username"])
     if b.get("full_name"):
         auth.validate_full_name(b["full_name"])
     if b.get("email"):
